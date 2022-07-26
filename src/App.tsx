@@ -10,20 +10,20 @@ function App() {
   const [volume, setVolume] = useState(1);
   const [url, setUrl] = useState("");
   const [seek, setSeek] = useState(0);
-  initializeApp({
-    //
-  });
+  const [velocity, setVelocity] = useState(0);
+  initializeApp({});
 
   const db = getFirestore();
 
-  const playerRef = useRef();
+  const playerRef: any = useRef();
 
   useEffect(() => {
     try {
-      onSnapshot(doc(db, "youtube", "params"), (doc) => {
+      onSnapshot(doc(db, "youtube", "params"), (doc: any) => {
         setPlaying(doc.data().playng);
         setVolume(doc.data().volume);
         setUrl(doc.data().url);
+        setVelocity(doc.data().velocity);
       });
     } catch (err) {
       alert("err");
@@ -32,7 +32,7 @@ function App() {
 
   useEffect(() => {
     try {
-      onSnapshot(doc(db, "youtube", "seek"), (doc) => {
+      onSnapshot(doc(db, "youtube", "seek"), (doc: any) => {
         playerRef.current.seekTo(doc.data().currentSeek);
         setSeek(doc.data().currentSeek);
       });
@@ -43,15 +43,9 @@ function App() {
 
   async function handleChangeTime() {
     playerRef.current.seekTo(seek);
-    // try {
-    //   await updateDoc(doc(db, "youtube", "seek"), {
-    //     currentSeek: seek,
-    //   })
-    //     .then(() => console.log("success"))
-    //     .catch(() => alert("erro"));
-    // } catch (err) {
-    //   alert(err);
-    // }
+    await updateDoc(doc(db, "youtube", "seek"), {
+      currentSeek: seek,
+    });
   }
 
   return (
@@ -65,15 +59,10 @@ function App() {
         width={"100%"}
         height={"100vh"}
         progressInterval={1}
-        playbackRate={1}
+        playbackRate={velocity}
         onProgress={(e) => setSeek(e.played)}
         onSeek={(e) => console.log(e)}
         onPause={handleChangeTime}
-        config={{
-          youtube: {
-            playerVars: { showinfo: 1 },
-          },
-        }}
       />
     </>
   );
